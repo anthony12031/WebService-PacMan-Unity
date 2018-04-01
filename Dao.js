@@ -8,7 +8,8 @@ db.once('open', function() {
 
 
 var puntajeSchema = mongoose.Schema({
-  valor: Number
+  valor: Number,
+  playerId:String
 });
 
 var puntajeModelo = mongoose.model('puntaje', puntajeSchema);
@@ -17,6 +18,39 @@ var puntajeModelo = mongoose.model('puntaje', puntajeSchema);
 almacenarPuntaje = async puntaje=>{
 	var nuevoPuntaje = new puntajeModelo({ valor: puntaje });
 	nuevoPuntaje.save((err,doc)=>{	
+	})
+}
+
+getPuntaje = async (playerId,callback)=>{
+ puntajeModelo.find({playerId:playerId})
+ .exec((err,puntaje)=>{
+ 	if(puntaje.length>0)
+ 		return callback(puntaje[0].valor);
+ 	callback("-");
+ })
+}
+
+postPuntaje = async (playerId,valor) =>{
+	var nuevoPuntaje = new puntajeModelo({ valor: valor,playerId:playerId });
+	nuevoPuntaje.save((err,doc)=>{	
+		if(err)
+			console.log(err);
+		console.log(doc);
+	})
+}
+
+putPuntaje = async(playerId,valor) =>{
+	var query = {'playerId':playerId};
+	puntajeModelo.findOneAndUpdate(query, {valor:valor}, {upsert:true}, function(err, doc){
+		if(err)
+			console.log(err);
+	});
+}
+
+deletePuntaje = async(playerId) =>{
+	puntajeModelo.findOneAndRemove({playerId:playerId},function(err,doc){
+		if(err)
+			console.log(err);
 	})
 }
 
@@ -34,6 +68,10 @@ getPuntajes =  (callback) =>{
 
 
 module.exports = {
+	getPuntaje:getPuntaje,
+	postPuntaje:postPuntaje,
+	putPuntaje:putPuntaje,
+	deletePuntaje:deletePuntaje,
 	almacenarPuntaje :almacenarPuntaje,
 	getPuntajes:getPuntajes
 }
